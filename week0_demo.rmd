@@ -1,0 +1,57 @@
+---
+title: "Testing tbaR on 2024 API data"
+author: "Gabriel Krotkov"
+date: "2024-02-18"
+output: html_document
+---
+
+For any new to this, this is what's called an `rmarkdown` document. It lets us interleave code and text; usually it's used as a very powerful tool for report generation. In fact, it's mostly what I used to create reports for executives back when I worked at CBRE|ESI. For right now what I'll be using it for is to walk you through how to get 2024 CRESCENDO data off the TBA API using tbaR. 
+
+First up, we'll load our libraries. This is essentially "booting up" tbaR. You may see a bunch of red messages, but there probably wasn't an error - devtools just formats its messages in red. 
+
+## Loading Libraries
+
+```{r}
+library(devtools)
+load_all("tbaR")
+```
+
+Now, we want to grab all the data from all the matches that were run at the official week 0. To do this, we'll use a function from tbaR called `event_matches`. You can call `help(event_matches)` to get documentation for the function. If it doesn't show up, call `tbaR::document()` to generate all the man pages on your machine.
+
+The following line of code makes a call to tbaR to get all the match data from the event "2024week0" and stores that information in a variable called `week0`. 
+
+## Getting Match Data
+
+```{r}
+week0 <- event_matches("2024week0")
+```
+
+Ok! Now we've got a local copy of all the data from the official week 0 in New Hampshire. Next up I want to get all the mobility and endgame data. To do this, I need to know what variables (columns) we have access to in `week0`. I'll call the `colnames` function to tell me all the column names.
+
+## Parsing Columns
+
+```{r}
+colnames(week0)
+```
+
+That's a lot of freaking names! I could go through and just read each one and figure out which ones I'm interested in, but I can do a little better than that. I know that all the fields I'm interested in will be on a per-robot basis, so they'll include the text "Robot" followed by a number. I can use regular expressions to pull those out.
+
+This line of code is pretty complicated. First up, I'm creating an "indexer". (Usually I abbreviate these to "idx".) This is a vector which contains all the indexes that I'm interested in pulling out from the colnames of `week0`. I'm using the `grep` function to match the columnnames of week0 that have the structure "Robot" followed by a number from 1 to 3, which returns the vector I want. 
+
+Then, I simply use that indexer to go into the column names vector and pull out the names I want. This gives a nice, clean list of the fields that I'm actually interested in.
+
+```{r}
+indexer <- grep("Robot[1-3]", colnames(week0))
+colnames(week0)[indexer]
+```
+
+## Getting Robot-level data
+
+Looks like the distinct fields that we're interested in are `autoLine` and `endGame`. Now we can feed this into the `get_multifield_df` function of tbaR and get a whole dataframe with all that information for every robot.
+
+```{r}
+fields <- c("autoLine", "endGame")
+data <- get_multifield_df(week0, fields)
+```
+
+Let's take a look at our data! You can call `View(data)` from your console to open RStudio's data viewer.
