@@ -12,7 +12,7 @@ editor_options:
 library(devtools)
 load_all("tbaR")
 
-event_code <- "2024paca" #change this to 2024paca Thursday Night!!
+event_code <- "2024paca"
 registered_teams <- event_teams(event_code, keys = TRUE)
 registered_teams <- as.numeric(substr(registered_teams, 4, 
                                       nchar(registered_teams)))
