@@ -10,9 +10,9 @@ editor_options:
 
 ```{r, echo = FALSE, warning = FALSE, message = FALSE, error = FALSE}
 library(devtools)
-load_all("../tbaR")
+load_all("tbaR")
 
-event_code <- "2024week0"
+event_code <- "2024paca" #change this to 2024paca Thursday Night!!
 registered_teams <- event_teams(event_code, keys = TRUE)
 registered_teams <- as.numeric(substr(registered_teams, 4, 
                                       nchar(registered_teams)))
@@ -20,13 +20,21 @@ registered_teams <- as.numeric(substr(registered_teams, 4,
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE, 
                       message = FALSE, error = FALSE)
 
-theme_set(theme_bw())
-```
+pad_pitdata <- function(pitdata, registered_teams){
+  padders <- !(registered_teams %in% pitdata$Team.Number)
+  pad <- data.frame(Timestamp = NA, Team.Number = padders, Weight = NA, 
+                    Height = NA, Build.Quality. = NA, DriveType = NA)
+  return(rbind(pitdata, pad))
+}
 
-```{r loading data}
+theme_set(theme_bw())
+
 tba_matches <- event_matches(event_code)
 tba_data <- get_multifield_df(tba_matches, 
                               fields = c("autoLine", "endGame"))
+```
+
+```{r loading data}
 tba_data$id <- as.numeric(substr(tba_data$id, 4, nchar(tba_data$id)))
 tba_data$n_matches <- tba_data$autoLine.Yes + tba_data$autoLine.No
 tba_data <- tba_data %>%
@@ -42,7 +50,8 @@ tba_data <- tba_data %>%
         "endgame_onstage_pct", "endgame_none_pct"
     )
 
-scouted <- read.delim("data/scouter_data.txt")
+scouted <- read.delim("data/greater_pittsburgh_data.txt")
+pitdata <- read.delim("data/pitdata.tsv")
 colnames(scouted) <- tolower(colnames(scouted))
 
 # typecasting
@@ -58,7 +67,7 @@ scouted$died <- cast_chr_boolean(scouted$died)
 scouted$tipped_over <- cast_chr_boolean(scouted$tipped_over)
 
 # retaining comments
-comments <- scouted[, c("team_number", "scouter_initials", "comments")]
+comments <- scouted[, c("team_number", "scouter_initials", "x")]
 
 # @TODO note cases where we missed a robot-match in the scouted data, and cases 
 # where a team is in `scouted` but not in `tba_data` and output to file
@@ -104,32 +113,17 @@ data <- data %>%
         scouted_score = (auto_amp_score_avg * 2) + (auto_spk_score_avg * 5) + 
             (tele_amp_score_avg) + (tele_spk_score_avg * 2) + (trap_avg * 5) + 
             (auto_mobility_pct * 2) + 
-            (endgame_onstage_pct * 3) + (endgame_park_pct)
+            (endgame_onstage_pct * 3) + (endgame_park_pct), 
+        trap_pts = trap_avg * 5, 
+        onstage_pts = endgame_onstage_pct * 3, 
+        park_pts = endgame_park_pct
     )
 
-data <- merge(data, comments[, c("team_number", "comments")], by.x = "team_number", by.y = "team_number", 
-              all.x = FALSE, all.y = TRUE)
 ```
 
-Goals for report: 
-- Pit scouting info 
-  - Picture of robot 
-  - Dimensions, height & weight
-- Scoring statistics for each team 
-- Endgame info 
-- Comments
-
-Graphs (2-Var): 
-- Avg Amp Notes and Misses vs team (qual)
-- Avg Speaker Notes and Misses vs team (qual)
-
-
-Graphs (1-Var): 
-
-
 ```{r}
-red_alliance <- c(3467, 131, 78)
-blue_alliance <- c(166, 2423, 4909)
+red_alliance <- c(3015, 1559, 3504)
+blue_alliance <- c(4145, 144, 340)
 
 red_df <- data[data$team_number %in% red_alliance, ]
 red_df$color <- "red"
@@ -142,6 +136,68 @@ viz$color <- factor(viz$color,
 
 # example visualization
 # other aesthetics to consider using: alpha (transparency), size
+library(ggplot2)
+library(gridExtra)
+library(grid)
+library(tidyverse)
+
+#cooperitition
+if (any(red_df == "3504") == TRUE) {
+  if (sum(red_df$avg_total_notes)>15 & sum(red_df$avg_total_notes)<18 & sum(blue_df$tele_amp_score_avg > 1)) {
+      print(paste("Cooperitition: Yes"))  
+  }
+  else {
+    print(paste("Cooperitition: Yes"))  
+  }
+} 
+if (any(blue_df == "3504"))
+{
+  if (sum(blue_df$avg_total_notes)>15 & sum(blue_df$avg_total_notes)<18 & sum(red_df$tele_amp_score_avg > 1)) 
+  {
+      print(paste("Cooperitition: Yes"))  
+  } else {
+    print(paste("Cooperitition: Yes"))  
+  }
+}
+
+#prints stats about all teams -> UNFINISHED!!!! 
+print(paste("BLUE ALLIANCE"))
+for (x in blue_df[,1])
+{
+  #more printlines coming! but i am optimizing them (maybe dont incluide opposing 
+  #alliance? unsure)
+  print(paste("TEAM NUMBER: ", x))
+  print(paste("Drive Type: ", pitdata[pitdata$Team.Number == x, "DriveType"]))
+  print(paste("Height: ",pitdata[pitdata$Team.Number == x, "Height"], 
+              "Weight: ",pitdata[pitdata$Team.Number == x, "Weight"]))
+  print(paste("Amp accuracy: ", scouted[scouted$team_number == x, "tele_amp_accuracy"], 
+              "Speaker accuracy: ", scouted[scouted$team_number == x, "tele_spk_accuracy"]))
+  print(paste("Can climb?: ", tba_data[tba_data$id == x, "endgame_onstage_pct"]>0))
+  print(paste("Can trap?: ", scouted[scouted$team_number == x, "trap_avg"]>0))
+  print(paste("Expected point contribution: ",viz[viz$team_number == x, "scouted_score"]))
+}
+
+print(paste("RED ALLIANCE"))
+for (x in red_df[,1])
+{
+  #more printlines coming! but i am optimizing them (maybe dont incluide opposing 
+  #alliance? unsure)
+  print(paste("TEAM NUMBER: ", x))
+  print(paste("Drive Type: ", pitdata[pitdata$Team.Number == x, "DriveType"]))
+  print(paste("Height: ",pitdata[pitdata$Team.Number == x, "Height"], 
+              "Weight: ",pitdata[pitdata$Team.Number == x, "Weight"]))
+  print(paste("Amp accuracy: ", scouted[scouted$team_number == x, "tele_amp_accuracy"], 
+              "Speaker accuracy: ", scouted[scouted$team_number == x, "tele_spk_accuracy"]))
+  print(paste("Can climb?: ", tba_data[tba_data$id == x, "endgame_onstage_pct"]>0))
+  print(paste("Can trap?: ", scouted[scouted$team_number == x, "trap_avg"]>0))
+  print(paste("Expected point contribution: ",viz[viz$team_number == x, "scouted_score"]))
+  print(paste("Comments: ", comments[comments$team_number == x, ]))
+
+}
+
+temp = comments[comments$team_number == "8705", ]
+
+# Total notes/scouted score
 ggplot(viz, 
        aes(x = avg_total_notes, y = scouted_score, 
            label = team_number, color = color)) + 
@@ -149,19 +205,22 @@ ggplot(viz,
     labs(title = "Match at-a-glance", 
          color = "Alliance")
 
-#PAST THIS POINT IS A STACKED BAR GRAPH DEFAULT CODE
-#DO NOT CHANGE -- IS JUST COPY AND PASTED FROM THE TUTORIAL 
+# Endgame
 
- # library
-library(ggplot2)
- 
-# create a dataset
-specie <- c(rep("sorgho" , 3) , rep("poacee" , 3) , rep("banana" , 3) , rep("triticum" , 3) )
-condition <- rep(c("normal" , "stress" , "Nitrogen") , 4)
-value <- abs(rnorm(12 , 0 , 15))
-data <- data.frame(specie,condition,value)
- 
-# Stacked
-ggplot(data, aes(fill=condition, y=value, x=specie)) + 
-    geom_bar(position="stack", stat="identity")
+# We use the pts version of each variable so that each task is weighted by 
+# the number of points it scores.
+ggplot(gather(viz, key = "key", value = "value", 
+              trap_pts, onstage_pts, park_pts), 
+       aes(x = factor(paste(team_number, color, sep = "\n")), y = value, fill = key)) + 
+  geom_bar(stat = "identity") + 
+  labs(title = "Endgame Scoring", x = "Team", y = "Scoring")
+
+# Weighting doesn't matter for Melody contribution so we don't need to do the
+# same here.
+ggplot(gather(viz, key = "key", value = "value", 
+              auto_amp_score_avg, tele_amp_score_avg, 
+              auto_spk_score_avg, tele_spk_score_avg), 
+       aes(x = factor(paste(team_number, color, sep = "\n")), y = value, fill = key)) + 
+  geom_bar(stat = "identity") + 
+  labs(title = "Melody Contribution", x = "Team", y = "# Notes")
 ```
