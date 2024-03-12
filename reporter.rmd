@@ -12,7 +12,7 @@ editor_options:
 library(devtools)
 load_all("tbaR")
 
-event_code <- "2024paca"
+event_code <- "2024paca" #change this to 2024paca Thursday Night!!
 registered_teams <- event_teams(event_code, keys = TRUE)
 registered_teams <- as.numeric(substr(registered_teams, 4, 
                                       nchar(registered_teams)))
@@ -191,7 +191,7 @@ for (x in red_df[,1])
   print(paste("Can climb?: ", tba_data[tba_data$id == x, "endgame_onstage_pct"]>0))
   print(paste("Can trap?: ", scouted[scouted$team_number == x, "trap_avg"]>0))
   print(paste("Expected point contribution: ",viz[viz$team_number == x, "scouted_score"]))
-  print(paste("Comments: ", comments[comments$team_number == x, ]))
+  print(paste("Comments: ", comments[comments$team_number == x & (comments$x != "undefined" & comments$x != "" & comments$x != "NA") , "x"]))
 
 }
 
