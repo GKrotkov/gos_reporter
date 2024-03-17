@@ -224,3 +224,248 @@ ggplot(gather(viz, key = "key", value = "value",
   geom_bar(stat = "identity") + 
   labs(title = "Melody Contribution", x = "Team", y = "# Notes")
 ```
+
+```{r}
+
+new_harmonyDF <- tba_matches[, c("match_number", "comp_level", "blue1", "blue2", "blue3", "blue_endGameRobot1", "blue_endGameRobot2", "blue_endGameRobot3", 
+                                 "red1", "red2", "red3", "red_endGameRobot1", "red_endGameRobot2", "red_endGameRobot3")]
+#new_harmonyDF <- viz[, c("trap_pts")]
+
+new_harmonyDF <- new_harmonyDF %>%
+    mutate(
+        blue1 = as.integer(substr(blue1, 4, nchar(blue1))),
+        blue2 = as.integer(substr(blue2, 4, nchar(blue2))),
+        blue3 = as.integer(substr(blue3, 4, nchar(blue3))),
+        red1 = as.integer(substr(red1, 4, nchar(red1))),
+        red2 = as.integer(substr(red2, 4, nchar(red2))),
+        red3 = as.integer(substr(red3, 4, nchar(red3)))
+    )
+
+for (i in 1:nrow(new_harmonyDF)){
+  if (is.na(new_harmonyDF[i, "blue_endGameRobot1"])){
+    message(is.na(new_harmonyDF[i, "blue_endGameRobot1"]))
+    new_harmonyDF <- new_harmonyDF[-c(i), ]
+  }
+}
+
+blue1 = vector(, nrow(new_harmonyDF))
+blue2 = vector(, nrow(new_harmonyDF))
+blue3 = vector(, nrow(new_harmonyDF))
+red1 = vector(, nrow(new_harmonyDF))
+red2 = vector(, nrow(new_harmonyDF))
+red3 = vector(, nrow(new_harmonyDF))
+
+for (i in 1:nrow(new_harmonyDF)){
+  if (new_harmonyDF[i, "blue_endGameRobot1"] == "None"){
+    blue1[i] = "None"
+  }
+  else if (new_harmonyDF[i, "blue_endGameRobot1"] == "Parked"){
+    blue1[i] = "Parked"
+  }
+  else if (new_harmonyDF[i, "blue_endGameRobot1"] == new_harmonyDF[i, "blue_endGameRobot2"] && 
+           new_harmonyDF[i, "blue_endGameRobot2"] == new_harmonyDF[i, "blue_endGameRobot3"]){
+    blue1[i] = "DoubleHarmony"
+  }
+  else if (new_harmonyDF[i, "blue_endGameRobot1"] == new_harmonyDF[i, "blue_endGameRobot2"] || 
+           new_harmonyDF[i, "blue_endGameRobot1"] == new_harmonyDF[i, "blue_endGameRobot3"]){
+    blue1[i] = "SingleHarmony"
+  }
+  else{
+    blue1[i] = "HungAlone"
+  }
+  
+  
+  if (new_harmonyDF[i, "blue_endGameRobot2"] == "None"){
+    blue2[i] = "None"
+  }
+  else if (new_harmonyDF[i, "blue_endGameRobot2"] == "Parked"){
+    blue2[i] = "Parked"
+  }
+  else if (new_harmonyDF[i, "blue_endGameRobot1"] == new_harmonyDF[i, "blue_endGameRobot2"] && 
+           new_harmonyDF[i, "blue_endGameRobot2"] == new_harmonyDF[i, "blue_endGameRobot3"]){
+    blue2[i] = "DoubleHarmony"
+  }
+  else if (new_harmonyDF[i, "blue_endGameRobot2"] == new_harmonyDF[i, "blue_endGameRobot1"] || 
+           new_harmonyDF[i, "blue_endGameRobot2"] == new_harmonyDF[i, "blue_endGameRobot3"]){
+    blue2[i] = "SingleHarmony"
+  }
+  else{
+    blue2[i] = "HungAlone"
+  }
+  
+  if (new_harmonyDF[i, "blue_endGameRobot3"] == "None"){
+    blue3[i] = "None"
+  }
+  else if (new_harmonyDF[i, "blue_endGameRobot3"] == "Parked"){
+    blue3[i] = "Parked"
+  }
+  else if (new_harmonyDF[i, "blue_endGameRobot1"] == new_harmonyDF[i, "blue_endGameRobot2"] && 
+           new_harmonyDF[i, "blue_endGameRobot2"] == new_harmonyDF[i, "blue_endGameRobot3"]){
+    blue3[i] = "DoubleHarmony"
+  }
+  else if (new_harmonyDF[i, "blue_endGameRobot3"] == new_harmonyDF[i, "blue_endGameRobot1"] || 
+           new_harmonyDF[i, "blue_endGameRobot3"] == new_harmonyDF[i, "blue_endGameRobot2"]){
+    blue3[i] = "SingleHarmony"
+  }
+  else{
+    blue3[i] = "HungAlone"
+  }
+  
+  
+  if (new_harmonyDF[i, "red_endGameRobot1"] == "None"){
+    red1[i] = "None"
+  }
+  else if (new_harmonyDF[i, "red_endGameRobot1"] == "Parked"){
+    red1[i] = "Parked"
+  }
+  else if (new_harmonyDF[i, "red_endGameRobot1"] == new_harmonyDF[i, "red_endGameRobot2"] && 
+           new_harmonyDF[i, "red_endGameRobot1"] == new_harmonyDF[i, "red_endGameRobot3"]){
+    red1[i] = "DoubleHarmony"
+  }
+  else if (new_harmonyDF[i, "red_endGameRobot1"] == new_harmonyDF[i, "red_endGameRobot2"] || 
+           new_harmonyDF[i, "red_endGameRobot1"] == new_harmonyDF[i, "red_endGameRobot3"]){
+    red1[i] = "SingleHarmony"
+  }
+  else{
+    red1[i] = "HungAlone"
+  }
+  
+  if (new_harmonyDF[i, "red_endGameRobot2"] == "None"){
+    red2[i] = "None"
+  }
+  else if (new_harmonyDF[i, "red_endGameRobot2"] == "Parked"){
+    red2[i] = "Parked"
+  }
+  else if (new_harmonyDF[i, "red_endGameRobot1"] == new_harmonyDF[i, "red_endGameRobot2"] && 
+           new_harmonyDF[i, "red_endGameRobot1"] == new_harmonyDF[i, "red_endGameRobot3"]){
+    red2[i] = "DoubleHarmony"
+  }
+  else if (new_harmonyDF[i, "red_endGameRobot2"] == new_harmonyDF[i, "red_endGameRobot1"] || 
+           new_harmonyDF[i, "red_endGameRobot2"] == new_harmonyDF[i, "red_endGameRobot3"]){
+    red2[i] = "SingleHarmony"
+  }
+  else{
+    red2[i] = "HungAlone"
+  }
+  
+  if (new_harmonyDF[i, "red_endGameRobot3"] == "None"){
+    red3[i] = "None"
+  }
+  else if (new_harmonyDF[i, "red_endGameRobot3"] == "Parked"){
+    red3[i] = "Parked"
+  }
+  else if (new_harmonyDF[i, "red_endGameRobot1"] == new_harmonyDF[i, "red_endGameRobot2"] && 
+           new_harmonyDF[i, "red_endGameRobot1"] == new_harmonyDF[i, "red_endGameRobot3"]){
+    red3[i] = "DoubleHarmony"
+  }
+  else if (new_harmonyDF[i, "red_endGameRobot3"] == new_harmonyDF[i, "red_endGameRobot1"] || 
+           new_harmonyDF[i, "red_endGameRobot3"] == new_harmonyDF[i, "red_endGameRobot2"]){
+    red3[i] = "SingleHarmony"
+  }
+  else{
+    red3[i] = "HungAlone"
+  }
+ 
+}
+ 
+new_harmonyDF$blue1post <- blue1
+new_harmonyDF$blue2post <- blue2
+new_harmonyDF$blue3post <- blue3
+new_harmonyDF$red1post <- red1
+new_harmonyDF$red2post <- red1
+new_harmonyDF$red3post <- red3
+ 
+
+postProHarmonyDF <- data.frame(matrix(ncol = 4, nrow = 0))
+x <- c("teamNum", "matchNum", "matchType", "endgamePos")
+colnames(postProHarmonyDF) <- x
+#postProHarmonyDF <- data.frame(Column1 = "Team Number", Column2 = "Endgame")
+
+for (i in 1:nrow(new_harmonyDF)) {
+  if (!is.na(new_harmonyDF[i, "blue_endGameRobot1"])){
+      postProHarmonyDF[nrow(postProHarmonyDF) + 1,] = c(new_harmonyDF[i, "blue1"], new_harmonyDF[i, "match_number"], 
+                                                        new_harmonyDF[i, "comp_level"], new_harmonyDF[i, "blue1post"])
+      postProHarmonyDF[nrow(postProHarmonyDF) + 1,] = c(new_harmonyDF[i, "blue2"], new_harmonyDF[i, "match_number"], 
+                                                        new_harmonyDF[i, "comp_level"], new_harmonyDF[i, "blue2post"])
+     postProHarmonyDF[nrow(postProHarmonyDF) + 1,] = c(new_harmonyDF[i, "blue3"], new_harmonyDF[i, "match_number"], 
+                                                        new_harmonyDF[i, "comp_level"], new_harmonyDF[i, "blue3post"])
+     postProHarmonyDF[nrow(postProHarmonyDF) + 1,] = c(new_harmonyDF[i, "red1"], new_harmonyDF[i, "match_number"], 
+                                                        new_harmonyDF[i, "comp_level"], new_harmonyDF[i, "red1post"])
+     postProHarmonyDF[nrow(postProHarmonyDF) + 1,] = c(new_harmonyDF[i, "red2"], new_harmonyDF[i, "match_number"], 
+                                                        new_harmonyDF[i, "comp_level"], new_harmonyDF[i, "red2post"])
+     postProHarmonyDF[nrow(postProHarmonyDF) + 1,] = c(new_harmonyDF[i, "red3"], new_harmonyDF[i, "match_number"], 
+                                                        new_harmonyDF[i, "comp_level"], new_harmonyDF[i, "red3post"])
+  }
+}
+
+graphHarmonyDF <- data.frame(matrix(ncol = 4, nrow = 0))
+x <- c("teamNum", "matchNum", "matchType", "endgamePos")
+colnames(graphHarmonyDF) <- x
+
+vizTeamsList <- unique(viz$team_number)
+
+summaryHarmonyDF <- data.frame(matrix(ncol = 7, nrow = 0))
+x <- c("teamNum", "None", "Parked", "HungAlone", "SingleHarmony", "DoubleHarmony", "Color")
+colnames(summaryHarmonyDF) <- x
+
+for (j in 1:length(vizTeamsList)){ 
+  selectedTeam <- vizTeamsList[j]
+  numNone <- 0
+  numParked <- 0
+  numHungAlone <- 0
+  numSingleHarmony <- 0
+  numDoubleHarmony <- 0
+  color <- NULL
+  for (i in 1:nrow(postProHarmonyDF)) {
+    if (postProHarmonyDF[i, "teamNum"] == selectedTeam){ 
+      graphHarmonyDF <- rbind(graphHarmonyDF, postProHarmonyDF[i,])
+      
+      if (postProHarmonyDF[i, "endgamePos"] == "None"){
+        numNone <- numNone + 1
+      }
+      
+      else if (postProHarmonyDF[i, "endgamePos"] == "Parked"){
+        numParked <- numParked + 1
+      }
+      
+      else if (postProHarmonyDF[i, "endgamePos"] == "HungAlone"){
+        numHungAlone <- numHungAlone + 1
+      }
+      
+      else if (postProHarmonyDF[i, "endgamePos"] == "SingleHarmony"){
+        numSingleHarmony <- numSingleHarmony + 1
+      }
+      
+      else if (postProHarmonyDF[i, "endgamePos"] == "DoubleHarmony"){
+        numDoubleHarmony <- numDoubleHarmony + 1
+      }
+      
+      if (selectedTeam %in% red_df$team_number) {
+        color = "red"
+      }
+      else {
+        color = "blue"
+      }
+    }
+    
+  }
+  summaryHarmonyDF <- rbind(summaryHarmonyDF, list(selectedTeam, numNone, numParked, numHungAlone, numSingleHarmony, numDoubleHarmony, color))
+}
+
+x <- c("teamNum", "None", "Parked", "HungAlone", "SingleHarmony", "DoubleHarmony", "Color")
+colnames(summaryHarmonyDF) <- x
+``` 
+
+```{r}
+f <- ifelse(summaryHarmonyDF$Color == "red", "red", "blue")
+
+ggplot(gather(summaryHarmonyDF, key = "key", value = "value", 
+              None, Parked, 
+              HungAlone, SingleHarmony, DoubleHarmony), 
+       aes(x = factor(paste(teamNum, Color, sep = "\n")), y = value, fill = key)) + 
+  geom_bar(stat = "identity") + 
+  theme(axis.text.x = element_text(colour = f)) +
+  labs(title = "Harmony Contribution", x = "Team", y = "# Occurences")
+
+```
+
