@@ -52,6 +52,7 @@ tba_data <- tba_data %>%
 
 scouted <- read.delim("data/greater_pittsburgh_data.txt")
 pitdata <- read.delim("data/pitdata.tsv")
+autoData <- read.delim("data/autoCenterlineData.txt")
 colnames(scouted) <- tolower(colnames(scouted))
 
 # typecasting
@@ -207,12 +208,15 @@ ggplot(viz,
 
 # Endgame
 
+f <- ifelse(viz$color == "red", "red", "blue")
+
 # We use the pts version of each variable so that each task is weighted by 
 # the number of points it scores.
 ggplot(gather(viz, key = "key", value = "value", 
               trap_pts, onstage_pts, park_pts), 
        aes(x = factor(paste(team_number, color, sep = "\n")), y = value, fill = key)) + 
   geom_bar(stat = "identity") + 
+    theme(axis.text.x = element_text(colour = f)) +
   labs(title = "Endgame Scoring", x = "Team", y = "Scoring")
 
 # Weighting doesn't matter for Melody contribution so we don't need to do the
@@ -222,7 +226,29 @@ ggplot(gather(viz, key = "key", value = "value",
               auto_spk_score_avg, tele_spk_score_avg), 
        aes(x = factor(paste(team_number, color, sep = "\n")), y = value, fill = key)) + 
   geom_bar(stat = "identity") + 
+    theme(axis.text.x = element_text(colour = f)) +
   labs(title = "Melody Contribution", x = "Team", y = "# Notes")
+```
+
+```{r}
+
+vizCombined <- viz %>%
+    group_by(color) %>%
+    summarize(auto_amp_score_avg = sum(auto_amp_score_avg), 
+              tele_amp_score_avg = sum(tele_amp_score_avg), 
+              auto_spk_score_avg = sum(auto_spk_score_avg), 
+              tele_spk_score_avg = sum(tele_spk_score_avg))
+
+f <- ifelse(vizCombined$color == "red", "red", "blue")
+
+ggplot(gather(vizCombined, key = "key", value = "value", 
+              auto_amp_score_avg, tele_amp_score_avg, 
+              auto_spk_score_avg, tele_spk_score_avg), 
+       aes(x = factor(paste(color)), y = value, fill = key)) + 
+  geom_bar(stat = "identity", width = 0.40) + 
+    theme(axis.text.x = element_text(colour = f)) +
+  labs(title = "Combined Melody Contribution", x = "Team", y = "# Notes")
+
 ```
 
 ```{r}
@@ -466,6 +492,12 @@ ggplot(gather(summaryHarmonyDF, key = "key", value = "value",
   geom_bar(stat = "identity") + 
   theme(axis.text.x = element_text(colour = f)) +
   labs(title = "Harmony Contribution", x = "Team", y = "# Occurences")
+
+```
+
+```{r}
+
+autoData[autoData$TeamNum==325 & autoData$Note == 7,] 
 
 ```
 
