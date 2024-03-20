@@ -1,0 +1,188 @@
+---
+title: "3504 GPR Day 1 Debrief"
+author: "Girls of Steel"
+date: "2024-03-01"
+output: pdf_document
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{r, echo = FALSE, warning = FALSE, message = FALSE, error = FALSE}
+library(devtools)
+load_all("../tbaR")
+
+event_code <- "2024paca" #change this to 2024paca Thursday Night!!
+registered_teams <- event_teams(event_code, keys = TRUE)
+registered_teams <- as.numeric(substr(registered_teams, 4, 
+                                      nchar(registered_teams)))
+
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, 
+                      message = FALSE, error = FALSE)
+
+theme_set(theme_bw())
+```
+
+```{r loading data}
+tba_matches <- event_matches(event_code)
+tba_data <- get_multifield_df(tba_matches, 
+                              fields = c("autoLine", "endGame"))
+tba_data$id <- as.numeric(substr(tba_data$id, 4, nchar(tba_data$id)))
+tba_data$n_matches <- tba_data$autoLine.Yes + tba_data$autoLine.No
+tba_data <- tba_data %>%
+    mutate(auto_mobility_pct = round(autoLine.Yes / n_matches, 2), 
+           endgame_park_pct = round(endGame.Parked / n_matches, 2), 
+           endgame_onstage_pct = round(
+               (endGame.CenterStage + endGame.StageLeft + endGame.StageRight) /
+                   n_matches, 2), 
+           endgame_none_pct = round(endGame.None / n_matches, 2)
+           ) %>%
+    select(
+        "id", "auto_mobility_pct", "endgame_park_pct", 
+        "endgame_onstage_pct", "endgame_none_pct"
+    )
+
+scouted <- read.delim("data/greater_pittsburgh_data.txt")
+pitdata <- read.delim("data/pitdata.tsv")
+colnames(scouted) <- tolower(colnames(scouted))
+
+# typecasting
+cast_chr_boolean <- function(chr){
+    return(ifelse(chr %in% c("true", "True", "TRUE", "T", "1", "t"), 
+                  TRUE, FALSE))
+}
+
+og_scouted <- scouted
+
+scouted$human_player_at_amp <- cast_chr_boolean(scouted$human_player_at_amp)
+scouted$no_show <- cast_chr_boolean(scouted$no_show)
+scouted$can_do_ground_pickup <- cast_chr_boolean(scouted$can_do_ground_pickup)
+scouted$died <- cast_chr_boolean(scouted$died)
+scouted$tipped_over <- cast_chr_boolean(scouted$tipped_over)
+
+# retaining comments
+comments <- scouted[, c("team_number", "scouter_initials", "comments")]
+
+# @TODO note cases where we missed a robot-match in the scouted data, and cases 
+# where a team is in `scouted` but not in `tba_data` and output to file
+
+scouted$total_notes <- scouted$auto_amp_scored + scouted$auto_speaker_scored + 
+    scouted$tele_amp_scored + scouted$tele_speaker_scored + scouted$note_in_trap
+
+scouted <- scouted %>%
+    group_by(team_number) %>%
+    summarize(auto_amp_score_avg = round(mean(auto_amp_scored), 2), 
+              auto_amp_miss_avg = round(mean(auto_amp_missed), 2), 
+              auto_spk_score_avg = round(mean(auto_speaker_scored), 2), 
+              auto_spk_miss_avg = round(mean(auto_speaker_missed), 2), 
+              tele_amp_score_avg = round(mean(tele_amp_scored), 2), 
+              tele_amp_miss_avg = round(mean(tele_amp_missed), 2), 
+              tele_spk_score_avg = round(mean(tele_speaker_scored), 2), 
+              tele_spk_miss_avg = round(mean(tele_speaker_missed), 2), 
+              trap_avg = round(mean(note_in_trap), 2), 
+              avg_total_notes = round(mean(total_notes), 2),
+              sd_total_notes = round(sd(total_notes), 2),
+              hp_at_amp_pct = round(sum(human_player_at_amp) / n(), 2), 
+              ground_pickup_pct = round(sum(can_do_ground_pickup) / n(), 2), 
+              died_pct = round(sum(died) / n(), 2), 
+              tip_pct = round(sum(tipped_over) / n(), 2), 
+              no_show_pct = round(sum(no_show) / n(), 2)) %>%
+    mutate(
+        auto_amp_accuracy = round(auto_amp_score_avg / 
+            (auto_amp_score_avg + auto_amp_miss_avg), 2), 
+        auto_spk_accuracy = round(auto_spk_score_avg /
+            (auto_spk_score_avg + auto_spk_miss_avg), 2),
+        tele_amp_accuracy = round(tele_amp_score_avg / 
+            (tele_amp_score_avg + tele_amp_miss_avg), 2), 
+        tele_spk_accuracy = round(tele_spk_score_avg /
+            (tele_spk_score_avg + tele_spk_miss_avg), 2)
+    )
+
+
+data <- merge(scouted, tba_data, by.x = "team_number", by.y = "id", 
+              all.x = FALSE, all.y = TRUE)
+
+data <- data %>%
+    mutate(
+        scouted_score = (auto_amp_score_avg * 2) + (auto_spk_score_avg * 5) + 
+            (tele_amp_score_avg) + (tele_spk_score_avg * 2) + (trap_avg * 5) + 
+            (auto_mobility_pct * 2) + 
+            (endgame_onstage_pct * 3) + (endgame_park_pct)
+    )
+
+data <- merge(data, comments[, c("team_number", "comments")], by.x = "team_number", by.y = "team_number", 
+              all.x = FALSE, all.y = TRUE)
+```
+
+```{r} 
+team_only = data.frame()
+for (i in 1:nrow(og_scouted)){
+  newNum <- strtoi(og_scouted$team_number[i])
+  if (is.integer(newNum) && !is.na(newNum) && newNum == 3504) {
+    team_only <- rbind(team_only, og_scouted[i,])
+  }
+}
+
+numMatches <- nrow(team_only)
+tba_one_team = data.frame()
+x = 0
+for (i in 1:nrow(data)){
+  newNum <- strtoi(data$team_number[i])
+  if (is.integer(newNum) && !is.na(newNum) && newNum == 3504) {
+    x <- i
+  }
+}
+tba_one_team <- rbind(tba_one_team, data[x,])
+
+#total notes scored (match, overall), total notes missed (match, overall), cycle time with missed, cycle time without missed
+#percent amp scored, percent speaker scored, auto speaker accuracy, teleop speaker accuracy, teleop amp accuracy 
+total_notes_scored_amp_tele = 0
+total_notes_scored_amp_auto = 0
+total_notes_scored_spk_tele = 0
+total_notes_scored_spke_auto = 0
+total_notes_attempted_spk = 0
+total_notes_attempted_amp = 0
+for (i in 1:nrow(team_only)) {
+  total_notes_scored_amp_tele <- total_notes_scored_amp_tele + team_only$tele_amp_scored[i]
+  total_notes_scored_amp_auto <- total_notes_scored_amp_auto + team_only$auto_amp_scored[i]
+  total_notes_scored_spk_tele <- total_notes_scored_spk_tele + team_only$tele_speaker_scored[i]
+  total_notes_scored_spke_auto <- total_notes_scored_spke_auto + team_only$auto_speaker_scored[i]
+  
+  total_notes_attempted_spk <- total_notes_attempted_spk + team_only$tele_speaker_scored[i] + team_only$tele_speaker_missed[i]
+  total_notes_attempted_amp <- total_notes_attempted_amp + team_only$tele_amp_scored[i] + team_only$tele_amp_missed[i]
+
+}
+
+total_notes_scored_tele = total_notes_scored_amp_tele + total_notes_scored_spk_tele
+total_notes_attempted_tele = total_notes_attempted_spk + total_notes_attempted_amp
+message(total_notes_scored_tele, " ", total_notes_attempted_tele)
+
+#message(total_notes_scored_amp_tele, " ", total_notes_scored_amp_auto, " ", total_notes_scored_spk_tele, " ", total_notes_scored_spke_auto, " ", #total_notes_attempted_spk, " ", total_notes_attempted_amp)
+
+print(paste("Cycle time with missed notes: ", round(135.0/(total_notes_attempted_tele/6), 3)))
+print(paste("Cycle time with only made notes: ", round(135.0/(total_notes_scored_tele/6), 3)))
+print(paste("Speaker accuracy: ", round((total_notes_scored_spk_tele)/(total_notes_attempted_spk), 3)))
+print(paste("Amp accuracy: ", round(total_notes_scored_amp_tele / total_notes_attempted_amp)))
+print(paste("Average total notes: ", tba_one_team$avg_total_notes))
+print(paste("Scouted Score: ", tba_one_team$scouted_score))
+
+library(ggplot2)
+library(gridExtra)
+library(grid)
+library(tidyverse)
+ggplot(gather(team_only, key = "key", value = "value", 
+              tele_amp_scored, tele_speaker_scored, 
+              auto_amp_scored, auto_speaker_scored), 
+       aes(x = factor(match_number), y = value, fill = key)) + 
+  geom_bar(stat = "identity") + 
+  labs(title = "3504 Melody Contribution - Scored Notes", x = "Match", y = "Note")
+
+print("- When we amp, we don't maximize full amp (communicate!! or hit speaker)") 
+print("- Remember that we can move under the stage!! (we did way better in later matches)") 
+print("- Our highest match was match 33. There were a lot of variables that went into ")
+print("this, but we were a *phenomenal* speaker bot then")
+print("- COMMUNICATE!!! At the ISR matches, most good teams were ")
+print("speaker teams because amp teams didn't have effective communication")
+print("- General note: Scouting is currently miles better than it was 8am Friday.")
+print("We will have data tomorrow for sure!")
+```
