@@ -1,6 +1,6 @@
 ---
 title: "picklist_generator"
-output: html_document
+output: pdf_document
 date: "2024-03-14"
 ---
 
@@ -116,7 +116,6 @@ data <- data %>%
 ```
 
 picklist rationale!:
-we want to be able to organize teams into "first pick" and "second pick"
 categories to be able to generate a good team for either scenario
 
 what do teams actually pick for?:
@@ -124,20 +123,17 @@ what do teams actually pick for?:
 - speaker/amp ability
 - standard deviation
 - Auto Compatibility -> when choosing amongst top teams
+```{r}
+#Create a list of teams for all variables selected
+library(flextable)
+top_score <- data[order(data$scouted_score, decreasing = TRUE), ]
 
-```{pick list bulk}
-//Create a list of teams for all variables selected
+set_flextable_defaults(
+font.family = "Arial", font.size = 10, border.color = "#e5383b",
+padding = 10, background.color = "#EFEFEF")
+viz <- data.frame("team_number" = top_score$team_number,
+"scouted_score" = top_score$scouted_score)
+flextable(viz)
 
-top_score <- data[order(data$trap_avg), decreasing = TRUE) ]
-print(paste("Trap Ranking", data$team_number + "trap_avg"))
-
-top_tele_speak_score <- data[order(data$tele_spk_score_avg), decreasing = TRUE ]
-print(paste("Trap Ranking", data$team_number + "tele_spk_score_avg"))
-
-top_trap_score <- data[order(data$trap_avg), decreasing = TRUE ]
-print(paste("Trap Ranking", data$team_number + "trap_avg"))
 
 ```
-
-With All The Code You Don't Want
-Put in Here
