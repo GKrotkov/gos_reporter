@@ -500,4 +500,3 @@ ggplot(gather(summaryHarmonyDF, key = "key", value = "value",
 autoData[autoData$TeamNum==325 & autoData$Note == 7,] 
 
 ```
-
