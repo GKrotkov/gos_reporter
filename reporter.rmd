@@ -150,7 +150,7 @@ if (any(red_df == "3504") == TRUE) {
       print(paste("Cooperitition: Yes"))  
   }
   else {
-    print(paste("Cooperitition: Yes"))  
+    print(paste("Cooperitition: No"))  
   }
 } 
 if (any(blue_df == "3504"))
@@ -174,7 +174,7 @@ vizBlueDf <- data.frame("Team?" = blue_df$team_number,
 
 #Change the pitdata stuff to stuff collected by scouters
 
-flextable(vizRedDf)
+flextable(vizBlueDf)
 
 
 print(paste("RED ALLIANCE"))
@@ -190,7 +190,6 @@ vizRedDf <- data.frame("Team?" = red_df$team_number,
 
 flextable(vizRedDf)
 
-temp = comments[comments$team_number == "8705", ]
 
 # Total notes/scouted score
 ggplot(viz, 

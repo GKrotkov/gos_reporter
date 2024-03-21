@@ -95,13 +95,15 @@ data <- data %>%
 ```
 
 ```{r}
-red_alliance <- c(3015, 1559, 3504)
+red_alliance <- c(3015, 1559, 578)
 blue_alliance <- c(4145, 144, 340)
 
 red_df <- data[data$team_number %in% red_alliance, ]
+red_pitdf <- pitdata[pitdata$Team.Number %in% red_alliance, ]
 red_df$color <- "red"
 blue_df <- data[data$team_number %in% blue_alliance, ]
 blue_df$color <- "blue"
+blue_pitdf <- pitdata[pitdata$Team.Number %in% blue_alliance, ]
 
 viz <- rbind(red_df, blue_df)
 viz$color <- factor(viz$color, 
@@ -120,7 +122,7 @@ if (any(red_df == "3504") == TRUE) {
       print(paste("Cooperitition: Yes"))  
   }
   else {
-    print(paste("Cooperitition: Yes"))  
+    print(paste("Cooperitition: No"))  
   }
 } 
 if (any(blue_df == "3504"))
@@ -129,44 +131,36 @@ if (any(blue_df == "3504"))
   {
       print(paste("Cooperitition: Yes"))  
   } else {
-    print(paste("Cooperitition: Yes"))  
+    print(paste("Cooperitition: No"))  
   }
 }
 
-#prints stats about all teams -> UNFINISHED!!!! 
+#prints stats about all teams -> FINISHED!!!! 
 print(paste("BLUE ALLIANCE"))
-for (x in blue_df[,1])
-{
-  #more printlines coming! but i am optimizing them (maybe dont incluide opposing 
-  #alliance? unsure)
-  print(paste("TEAM NUMBER: ", x))
-  print(paste("Drive Type: ", pitdata[pitdata$Team.Number == x, "DriveType"]))
-  print(paste("Height: ",pitdata[pitdata$Team.Number == x, "Height"], 
-              "Weight: ",pitdata[pitdata$Team.Number == x, "Weight"]))
-  print(paste("Amp accuracy: ", scouted[scouted$team_number == x, "tele_amp_accuracy"], 
-              "Speaker accuracy: ", scouted[scouted$team_number == x, "tele_spk_accuracy"]))
-  print(paste("Can trap?: ", scouted[scouted$team_number == x, "trap_avg"]>0))
-  print(paste("Expected point contribution: ",viz[viz$team_number == x, "scouted_score"]))
-}
+
+set_flextable_defaults(
+font.family = "Arial", font.size = 8, border.color = "#0066B3",
+padding = 6, background.color = "#EFEFEF")
+vizBlueDf <- data.frame("Team?" = blue_df$team_number,
+"scouted_score" = blue_df$scouted_score, "Drive?" = blue_pitdf$DriveType, "Amp %" = blue_df$tele_amp_accuracy, "Can climb" = (blue_df$endgame_onstage_pct>0), "Under stage?" = (blue_pitdf$Height < 29), "Speaker %" = blue_df$tele_spk_accuracy, "IntakesFromGround?" = blue_pitdf$Ground_Pickup, "ShootsAwayFromSubwoofer" = blue_pitdf$Can_shoot_away_from_subwoofer)
+
+#Change the pitdata stuff to stuff collected by scouters
+
+flextable(vizBlueDf)
+
 
 print(paste("RED ALLIANCE"))
-for (x in red_df[,1])
-{
-  #more printlines coming! but i am optimizing them (maybe dont incluide opposing 
-  #alliance? unsure)
-  print(paste("TEAM NUMBER: ", x))
-  print(paste("Drive Type: ", pitdata[pitdata$Team.Number == x, "DriveType"]))
-  print(paste("Height: ",pitdata[pitdata$Team.Number == x, "Height"], 
-              "Weight: ",pitdata[pitdata$Team.Number == x, "Weight"]))
-  print(paste("Amp accuracy: ", scouted[scouted$team_number == x, "tele_amp_accuracy"], 
-              "Speaker accuracy: ", scouted[scouted$team_number == x, "tele_spk_accuracy"]))
-  print(paste("Can trap?: ", scouted[scouted$team_number == x, "trap_avg"]>0))
-  print(paste("Expected point contribution: ",viz[viz$team_number == x, "scouted_score"]))
-  print(paste("Comments: ", comments[comments$team_number == x & (comments$x != "undefined" & comments$x != "" & comments$x != "NA") , "x"]))
+library(flextable)
 
-}
+set_flextable_defaults(
+font.family = "Arial", font.size = 8, border.color = "#e5383b",
+padding = 6, background.color = "#EFEFEF")
+vizRedDf <- data.frame("Team?" = red_df$team_number,
+"scouted_score" = red_df$scouted_score, "Drive?" = red_pitdf$DriveType, "Amp %" = red_df$tele_amp_accuracy, "Can climb" = (red_df$endgame_onstage_pct>0), "Under stage?" = (red_pitdf$Height < 29), "Speaker %" = red_df$tele_spk_accuracy, "IntakesFromGround?" = red_pitdf$Ground_Pickup, "ShootsAwayFromSubwoofer" = red_pitdf$Can_shoot_away_from_subwoofer)
 
-temp = comments[comments$team_number == "8705", ]
+#Change the pitdata stuff in a pit
+
+flextable(vizRedDf)
 
 # Total notes/scouted score
 ggplot(viz, 
