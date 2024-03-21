@@ -482,6 +482,21 @@ ggplot(gather(summaryHarmonyDF, key = "key", value = "value",
 
 ```{r}
 
-autoData[autoData$TeamNum==325 & autoData$Note == 7,] 
+library("dplyr") 
+library(gridExtra)
+library("writexl")
 
+for (i in 1:length(vizTeamsList)){ 
+    #print(paste("Team Number: ", vizTeamsList[i]))
+    teamAutosData <- autoData[autoData$TeamNum==325] 
+    #teamAutosData <- teamAutosData[order(teamAutosData$Time, decreasing = TRUE), ]
+    #data(teamAutosData)
+    head(teamAutosData)
+    
+    #giving up heres the same thing in excel
+    #its easier than adding a DF to a PDF 
+    write_xlsx(teamAutosData, "C:/Users/Anuva/Documents/gos_data_science_nogithub/gos_reporter_nogithub/data//trial.xlsx")
+    
+}
+    
 ```
