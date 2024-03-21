@@ -176,13 +176,4 @@ ggplot(gather(team_only, key = "key", value = "value",
        aes(x = factor(match_number), y = value, fill = key)) + 
   geom_bar(stat = "identity") + 
   labs(title = "3504 Melody Contribution - Scored Notes", x = "Match", y = "Note")
-
-print("- When we amp, we don't maximize full amp (communicate!! or hit speaker)") 
-print("- Remember that we can move under the stage!! (we did way better in later matches)") 
-print("- Our highest match was match 33. There were a lot of variables that went into ")
-print("this, but we were a *phenomenal* speaker bot then")
-print("- COMMUNICATE!!! At the ISR matches, most good teams were ")
-print("speaker teams because amp teams didn't have effective communication")
-print("- General note: Scouting is currently miles better than it was 8am Friday.")
-print("We will have data tomorrow for sure!")
 ```
