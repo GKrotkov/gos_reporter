@@ -159,7 +159,7 @@ if (any(blue_df == "3504"))
   {
       print(paste("Cooperitition: Yes"))  
   } else {
-    print(paste("Cooperitition: Yes"))  
+    print(paste("Cooperitition: No"))  
   }
 }
 
