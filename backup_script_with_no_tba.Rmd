@@ -24,7 +24,7 @@ theme_set(theme_bw())
 ```{r loading data}
 
 scouted <- read.delim("data/greater_pittsburgh_data.txt")
-pitdata <- read.delim("data/pitdata.tsv")
+pitdata <- read.delim("data/pitdatabuckeye.tsv")
 colnames(scouted) <- tolower(colnames(scouted))
 
 # typecasting
@@ -95,8 +95,8 @@ data <- data %>%
 ```
 
 ```{r}
-red_alliance <- c(3015, 1559, 578)
-blue_alliance <- c(4145, 144, 340)
+red_alliance <- c(695, 3504, 2399)
+blue_alliance <- c(4145, 4050, 4027)
 
 red_df <- data[data$team_number %in% red_alliance, ]
 red_pitdf <- pitdata[pitdata$Team.Number %in% red_alliance, ]
