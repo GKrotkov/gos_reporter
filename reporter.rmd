@@ -123,10 +123,11 @@ data <- data %>%
 ```
 
 ```{r}
-red_alliance <- c(3015, 1559, 3504)
+red_alliance <- c(3015, 1559, 578)
 blue_alliance <- c(4145, 144, 340)
 
 red_df <- data[data$team_number %in% red_alliance, ]
+red_pitdf <- pitdata[pitdata$Team.Number %in% red_alliance, ]
 red_df$color <- "red"
 blue_df <- data[data$team_number %in% blue_alliance, ]
 blue_df$color <- "blue"
@@ -167,34 +168,18 @@ for (x in blue_df[,1])
 {
   #more printlines coming! but i am optimizing them (maybe dont incluide opposing 
   #alliance? unsure)
-  print(paste("TEAM NUMBER: ", x))
-  print(paste("Drive Type: ", pitdata[pitdata$Team.Number == x, "DriveType"]))
-  print(paste("Height: ",pitdata[pitdata$Team.Number == x, "Height"], 
-              "Weight: ",pitdata[pitdata$Team.Number == x, "Weight"]))
-  print(paste("Amp accuracy: ", scouted[scouted$team_number == x, "tele_amp_accuracy"], 
-              "Speaker accuracy: ", scouted[scouted$team_number == x, "tele_spk_accuracy"]))
-  print(paste("Can climb?: ", tba_data[tba_data$id == x, "endgame_onstage_pct"]>0))
-  print(paste("Can trap?: ", scouted[scouted$team_number == x, "trap_avg"]>0))
-  print(paste("Expected point contribution: ",viz[viz$team_number == x, "scouted_score"]))
+  
 }
 
-print(paste("RED ALLIANCE"))
-for (x in red_df[,1])
-{
-  #more printlines coming! but i am optimizing them (maybe dont incluide opposing 
-  #alliance? unsure)
-  print(paste("TEAM NUMBER: ", x))
-  print(paste("Drive Type: ", pitdata[pitdata$Team.Number == x, "DriveType"]))
-  print(paste("Height: ",pitdata[pitdata$Team.Number == x, "Height"], 
-              "Weight: ",pitdata[pitdata$Team.Number == x, "Weight"]))
-  print(paste("Amp accuracy: ", scouted[scouted$team_number == x, "tele_amp_accuracy"], 
-              "Speaker accuracy: ", scouted[scouted$team_number == x, "tele_spk_accuracy"]))
-  print(paste("Can climb?: ", tba_data[tba_data$id == x, "endgame_onstage_pct"]>0))
-  print(paste("Can trap?: ", scouted[scouted$team_number == x, "trap_avg"]>0))
-  print(paste("Expected point contribution: ",viz[viz$team_number == x, "scouted_score"]))
-  print(paste("Comments: ", comments[comments$team_number == x & (comments$x != "undefined" & comments$x != "" & comments$x != "NA") , "x"]))
+library(flextable)
 
-}
+set_flextable_defaults(
+font.family = "Arial", font.size = 10, border.color = "#e5383b",
+padding = 10, background.color = "#EFEFEF")
+vizRedDf <- data.frame("Team?" = red_df$team_number,
+"scouted_score" = red_df$scouted_score, "Drive?" = red_pitdf$DriveType, "Amp %" = red_df$tele_amp_accuracy, "Speaker %" = red_df$tele_spk_accuracy, "Can climb" = (red_df$endgame_onstage_pct>0))
+
+flextable(vizRedDf)
 
 temp = comments[comments$team_number == "8705", ]
 
