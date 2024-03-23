@@ -52,6 +52,7 @@ tba_data <- tba_data %>%
 
 scouted <- read.delim("data/greater_pittsburgh_data.txt")
 pitdata <- read.delim("data/pitdata.tsv")
+autoData <- read.delim("data/autoCenterlineData.txt")
 colnames(scouted) <- tolower(colnames(scouted))
 
 # typecasting
@@ -122,19 +123,19 @@ data <- data %>%
 ```
 
 ```{r}
-red_alliance <- c(3015, 1559, 3504)
+red_alliance <- c(3015, 1559, 578)
 blue_alliance <- c(4145, 144, 340)
 
 red_df <- data[data$team_number %in% red_alliance, ]
+red_pitdf <- pitdata[pitdata$Team.Number %in% red_alliance, ]
 red_df$color <- "red"
 blue_df <- data[data$team_number %in% blue_alliance, ]
 blue_df$color <- "blue"
+blue_pitdf <- pitdata[pitdata$Team.Number %in% blue_alliance, ]
 
 viz <- rbind(red_df, blue_df)
 viz$color <- factor(viz$color, 
                     levels = c("red", "blue"), labels = c("red", "blue"))
-#color scheme for graph labels
-f <- ifelse(summaryHarmonyDF$Color == "red", "red", "blue")
 
 # example visualization
 # other aesthetics to consider using: alpha (transparency), size
@@ -149,7 +150,7 @@ if (any(red_df == "3504") == TRUE) {
       print(paste("Cooperitition: Yes"))  
   }
   else {
-    print(paste("Cooperitition: Yes"))  
+    print(paste("Cooperitition: No"))  
   }
 } 
 if (any(blue_df == "3504"))
@@ -158,46 +159,37 @@ if (any(blue_df == "3504"))
   {
       print(paste("Cooperitition: Yes"))  
   } else {
-    print(paste("Cooperitition: Yes"))  
+    print(paste("Cooperitition: No"))  
   }
 }
 
-#prints stats about all teams -> UNFINISHED!!!! 
+#prints stats about all teams -> FINISHED!!!! 
 print(paste("BLUE ALLIANCE"))
-for (x in blue_df[,1])
-{
-  #more printlines coming! but i am optimizing them (maybe dont incluide opposing 
-  #alliance? unsure)
-  print(paste("TEAM NUMBER: ", x))
-  print(paste("Drive Type: ", pitdata[pitdata$Team.Number == x, "DriveType"]))
-  print(paste("Height: ",pitdata[pitdata$Team.Number == x, "Height"], 
-              "Weight: ",pitdata[pitdata$Team.Number == x, "Weight"]))
-  print(paste("Amp accuracy: ", scouted[scouted$team_number == x, "tele_amp_accuracy"], 
-              "Speaker accuracy: ", scouted[scouted$team_number == x, "tele_spk_accuracy"]))
-  print(paste("Can climb?: ", tba_data[tba_data$id == x, "endgame_onstage_pct"]>0))
-  print(paste("Can trap?: ", scouted[scouted$team_number == x, "trap_avg"]>0))
-  print(paste("Expected point contribution: ",viz[viz$team_number == x, "scouted_score"]))
-}
+
+set_flextable_defaults(
+font.family = "Arial", font.size = 8, border.color = "#0066B3",
+padding = 6, background.color = "#EFEFEF")
+vizBlueDf <- data.frame("Team?" = blue_df$team_number,
+"scouted_score" = blue_df$scouted_score, "Drive?" = blue_pitdf$DriveType, "Amp %" = blue_df$tele_amp_accuracy, "Can climb" = (blue_df$endgame_onstage_pct>0), "Under stage?" = (blue_pitdf$Height < 29), "Speaker %" = blue_df$tele_spk_accuracy, "IntakesFromGround?" = blue_pitdf$Ground_Pickup, "ShootsAwayFromSubwoofer" = blue_pitdf$Can_shoot_away_from_subwoofer, "Comments" = Comments$team_number %in% blue_alliance)
+
+#Change the pitdata stuff to stuff collected by scouters
+
+flextable(vizBlueDf)
+
 
 print(paste("RED ALLIANCE"))
-for (x in red_df[,1])
-{
-  #more printlines coming! but i am optimizing them (maybe dont incluide opposing 
-  #alliance? unsure)
-  print(paste("TEAM NUMBER: ", x))
-  print(paste("Drive Type: ", pitdata[pitdata$Team.Number == x, "DriveType"]))
-  print(paste("Height: ",pitdata[pitdata$Team.Number == x, "Height"], 
-              "Weight: ",pitdata[pitdata$Team.Number == x, "Weight"]))
-  print(paste("Amp accuracy: ", scouted[scouted$team_number == x, "tele_amp_accuracy"], 
-              "Speaker accuracy: ", scouted[scouted$team_number == x, "tele_spk_accuracy"]))
-  print(paste("Can climb?: ", tba_data[tba_data$id == x, "endgame_onstage_pct"]>0))
-  print(paste("Can trap?: ", scouted[scouted$team_number == x, "trap_avg"]>0))
-  print(paste("Expected point contribution: ",viz[viz$team_number == x, "scouted_score"]))
-  print(paste("Comments: ", comments[comments$team_number == x & (comments$x != "undefined" & comments$x != "" & comments$x != "NA") , "x"]))
+library(flextable)
 
-}
+set_flextable_defaults(
+font.family = "Arial", font.size = 8, border.color = "#e5383b",
+padding = 6, background.color = "#EFEFEF")
+vizRedDf <- data.frame("Team?" = red_df$team_number,
+"scouted_score" = red_df$scouted_score, "Drive?" = red_pitdf$DriveType, "Amp %" = red_df$tele_amp_accuracy, "Can climb" = (red_df$endgame_onstage_pct>0), "Under stage?" = (red_pitdf$Height < 29), "Speaker %" = red_df$tele_spk_accuracy, "IntakesFromGround?" = red_pitdf$Ground_Pickup, "ShootsAwayFromSubwoofer" = red_pitdf$Can_shoot_away_from_subwoofer, "Comments" = Comments$team_number %in% red_alliance)
 
-temp = comments[comments$team_number == "8705", ]
+#Change the pitdata stuff in a pit
+
+flextable(vizRedDf)
+
 
 # Total notes/scouted score
 ggplot(viz, 
@@ -209,12 +201,15 @@ ggplot(viz,
 
 # Endgame
 
+f <- ifelse(viz$color == "red", "red", "blue")
+
 # We use the pts version of each variable so that each task is weighted by 
 # the number of points it scores.
 ggplot(gather(viz, key = "key", value = "value", 
               trap_pts, onstage_pts, park_pts), 
        aes(x = factor(paste(team_number, color, sep = "\n")), y = value, fill = key)) + 
-  geom_bar(stat = "identity") + theme(axis.text.x = element_text(colour = f)) +
+  geom_bar(stat = "identity") + 
+    theme(axis.text.x = element_text(colour = f)) +
   labs(title = "Endgame Scoring", x = "Team", y = "Scoring")
 
 # Weighting doesn't matter for Melody contribution so we don't need to do the
@@ -223,8 +218,30 @@ ggplot(gather(viz, key = "key", value = "value",
               auto_amp_score_avg, tele_amp_score_avg, 
               auto_spk_score_avg, tele_spk_score_avg), 
        aes(x = factor(paste(team_number, color, sep = "\n")), y = value, fill = key)) + 
-  geom_bar(stat = "identity") + theme(axis.text.x = element_text(colour = f)) +
+  geom_bar(stat = "identity") + 
+    theme(axis.text.x = element_text(colour = f)) +
   labs(title = "Melody Contribution", x = "Team", y = "# Notes")
+```
+
+```{r}
+
+vizCombined <- viz %>%
+    group_by(color) %>%
+    summarize(auto_amp_score_avg = sum(auto_amp_score_avg), 
+              tele_amp_score_avg = sum(tele_amp_score_avg), 
+              auto_spk_score_avg = sum(auto_spk_score_avg), 
+              tele_spk_score_avg = sum(tele_spk_score_avg))
+
+f <- ifelse(vizCombined$color == "red", "red", "blue")
+
+ggplot(gather(vizCombined, key = "key", value = "value", 
+              auto_amp_score_avg, tele_amp_score_avg, 
+              auto_spk_score_avg, tele_spk_score_avg), 
+       aes(x = factor(paste(color)), y = value, fill = key)) + 
+  geom_bar(stat = "identity", width = 0.40) + 
+    theme(axis.text.x = element_text(colour = f)) +
+  labs(title = "Combined Melody Contribution", x = "Team", y = "# Notes")
+
 ```
 
 ```{r}
@@ -456,7 +473,10 @@ for (j in 1:length(vizTeamsList)){
 
 x <- c("teamNum", "None", "Parked", "HungAlone", "SingleHarmony", "DoubleHarmony", "Color")
 colnames(summaryHarmonyDF) <- x
+``` 
 
+```{r}
+f <- ifelse(summaryHarmonyDF$Color == "red", "red", "blue")
 
 ggplot(gather(summaryHarmonyDF, key = "key", value = "value", 
               None, Parked, 
@@ -465,4 +485,26 @@ ggplot(gather(summaryHarmonyDF, key = "key", value = "value",
   geom_bar(stat = "identity") + 
   theme(axis.text.x = element_text(colour = f)) +
   labs(title = "Harmony Contribution", x = "Team", y = "# Occurences")
-``` 
+
+```
+
+```{r}
+
+library("dplyr") 
+library(gridExtra)
+library("writexl")
+
+for (i in 1:length(vizTeamsList)){ 
+    #print(paste("Team Number: ", vizTeamsList[i]))
+    teamAutosData <- autoData[autoData$TeamNum==325] 
+    #teamAutosData <- teamAutosData[order(teamAutosData$Time, decreasing = TRUE), ]
+    #data(teamAutosData)
+    head(teamAutosData)
+    
+    #giving up heres the same thing in excel
+    #its easier than adding a DF to a PDF 
+    write_xlsx(teamAutosData, "C:/Users/Anuva/Documents/gos_data_science_nogithub/gos_reporter_nogithub/data//trial.xlsx")
+    
+}
+    
+```
