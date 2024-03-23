@@ -11,6 +11,7 @@ editor_options:
 ```{r, echo = FALSE, warning = FALSE, message = FALSE, error = FALSE}
 library(devtools)
 load_all("../tbaR")
+library(flextable)
 
 event_code <- "2024ohcl" #change this to 2024ohcl Thursday
 registered_teams <- event_teams(event_code, keys = TRUE)
