@@ -1,0 +1,26 @@
+---
+title: "champs_reporter"
+author: "Girls of Steel Scouting"
+date: "2024-04-03"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, message = FALSE}
+library(devtools)
+load_all("../tbaR")
+source("statbotics_readR.R")
+
+event_code <- "2024gaalb"
+
+registered_teams <- event_teams(event_code, keys = TRUE)
+registered_teams <- as.numeric(
+    substr(registered_teams, 4, nchar(registered_teams))
+)
+
+statbotics_data <- data.frame(t(sapply(registered_teams, read_team)))
+```
+
