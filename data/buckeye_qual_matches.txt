@@ -1,4 +1,4 @@
-Scouter_Initials	Match_Number	Robot	Team_Number	Human Player at Amp	No_Show	Amp_Scored	Amp_Missed	Speaker_Scored	Speaker_Missed	Goes_To_Centerline?	Can_Do_Ground Pickup?	Amp_Scored	Amp_Missed	Speaker_Scored	Speaker_Missed	Note_in_Trap?	Driver_Ability?_(1-5)	Only_Scores_Near_Subwoofer?	Died	Tipped_Over	Comments	
+Scouter_Initials	Match_Number	Robot	Team_Number	human_player_at_amp	No_Show	auto_amp_Scored	auto_amp_missed	auto_speaker_scored	auto_speaker_missed	Goes_To_Centerline	can_do_ground_pickup	tele_amp_scored	tele_amp_missed	tele_speaker_scored	tele_speaker_missed	Note_in_Trap	Driver_Ability	Only_Scores_Near_Subwoofer	Died	Tipped_Over	Comments
 AM	1	R1	8140	false	false	0	0	0	0	0	0	0	0	1	0	0	3	false	false	false	undefined
 NS	1	R2	4121	false	false	0	0	1	0	true	true	0	0	8	1	0	5	false	false	false	undefined
 AK	1	B1	8718	true	false	0	0	0	0	0	false	0	0	0	0	0	1	false	true	false	undefined

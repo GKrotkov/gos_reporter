@@ -8,7 +8,7 @@ date: "2024-03-14"
 library(devtools)
 load_all("../tbaR")
 
-event_code <- "2024paca" 
+event_code <- "2024ohcl" 
 registered_teams <- event_teams(event_code, keys = TRUE)
 registered_teams <- as.numeric(substr(registered_teams, 4, 
                                       nchar(registered_teams)))
@@ -105,9 +105,9 @@ data <- merge(scouted, tba_data, by.x = "team_number", by.y = "id",
 data <- data %>%
     mutate(
         scouted_score = (auto_amp_score_avg * 2) + (auto_spk_score_avg * 5) + 
-            (tele_amp_score_avg) + (tele_spk_score_avg * 2) + (trap_avg * 5) + 
-            (auto_mobility_pct * 2) + 
-            (endgame_onstage_pct * 3) + (endgame_park_pct), 
+            (tele_amp_score_avg * 2.5) + (tele_spk_score_avg * 2.5) + 
+          (trap_avg * 5) + (auto_mobility_pct * 2) + 
+          (endgame_onstage_pct * 3) + (endgame_park_pct), 
         trap_pts = trap_avg * 5, 
         onstage_pts = endgame_onstage_pct * 3, 
         park_pts = endgame_park_pct

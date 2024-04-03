@@ -51,7 +51,7 @@ tba_data <- tba_data %>%
         "endgame_onstage_pct", "endgame_none_pct"
     )
 
-scouted <- read.delim("data/greater_pittsburgh_data.txt")
+scouted <- read.delim("data/buckeye_qual_matches.txt")
 pitdata <- read.delim("data/pitdata.tsv")
 autoData <- read.delim("data/autoCenterlineData.txt")
 colnames(scouted) <- tolower(colnames(scouted))
@@ -69,7 +69,7 @@ scouted$died <- cast_chr_boolean(scouted$died)
 scouted$tipped_over <- cast_chr_boolean(scouted$tipped_over)
 
 # retaining comments
-comments <- scouted[, c("team_number", "scouter_initials", "x")]
+comments <- scouted[, c("team_number", "scouter_initials", "comments")]
 
 # @TODO note cases where we missed a robot-match in the scouted data, and cases 
 # where a team is in `scouted` but not in `tba_data` and output to file
@@ -124,8 +124,8 @@ data <- data %>%
 ```
 
 ```{r}
-red_alliance <- c(3015, 1559, 578)
-blue_alliance <- c(4145, 144, 340)
+red_alliance <- c(1787, 3504, 8243)
+blue_alliance <- c(3954, 8140, 4504)
 
 red_df <- data[data$team_number %in% red_alliance, ]
 red_pitdf <- pitdata[pitdata$Team.Number %in% red_alliance, ]
@@ -171,7 +171,7 @@ set_flextable_defaults(
 font.family = "Arial", font.size = 8, border.color = "#0066B3",
 padding = 6, background.color = "#EFEFEF")
 vizBlueDf <- data.frame("Team?" = blue_df$team_number,
-"scouted_score" = blue_df$scouted_score, "Drive?" = blue_pitdf$DriveType, "Amp %" = blue_df$tele_amp_accuracy, "Can climb" = (blue_df$endgame_onstage_pct>0), "Under stage?" = (blue_pitdf$Height < 29), "Speaker %" = blue_df$tele_spk_accuracy, "IntakesFromGround?" = blue_pitdf$Ground_Pickup, "ShootsAwayFromSubwoofer" = blue_pitdf$Can_shoot_away_from_subwoofer, "Comments" = Comments$team_number %in% blue_alliance)
+"scouted_score" = blue_df$scouted_score, "Drive?" = blue_pitdf$DriveType, "Amp %" = blue_df$tele_amp_accuracy, "Can climb" = (blue_df$endgame_onstage_pct>0), "Under stage?" = (blue_pitdf$Height < 29), "Speaker %" = blue_df$tele_spk_accuracy, "IntakesFromGround?" = blue_pitdf$Ground_Pickup, "ShootsAwayFromSubwoofer" = blue_pitdf$Can_shoot_away_from_subwoofer, "Comments" = comments$team_number %in% blue_alliance)
 
 #Change the pitdata stuff to stuff collected by scouters
 
@@ -185,7 +185,7 @@ set_flextable_defaults(
 font.family = "Arial", font.size = 8, border.color = "#e5383b",
 padding = 6, background.color = "#EFEFEF")
 vizRedDf <- data.frame("Team?" = red_df$team_number,
-"scouted_score" = red_df$scouted_score, "Drive?" = red_pitdf$DriveType, "Amp %" = red_df$tele_amp_accuracy, "Can climb" = (red_df$endgame_onstage_pct>0), "Under stage?" = (red_pitdf$Height < 29), "Speaker %" = red_df$tele_spk_accuracy, "IntakesFromGround?" = red_pitdf$Ground_Pickup, "ShootsAwayFromSubwoofer" = red_pitdf$Can_shoot_away_from_subwoofer, "Comments" = Comments$team_number %in% red_alliance)
+"scouted_score" = red_df$scouted_score, "Drive?" = red_pitdf$DriveType, "Amp %" = red_df$tele_amp_accuracy, "Can climb" = (red_df$endgame_onstage_pct>0), "Under stage?" = (red_pitdf$Height < 29), "Speaker %" = red_df$tele_spk_accuracy, "IntakesFromGround?" = red_pitdf$Ground_Pickup, "ShootsAwayFromSubwoofer" = red_pitdf$Can_shoot_away_from_subwoofer, "Comments" = comments$team_number %in% red_alliance)
 
 #Change the pitdata stuff in a pit
 
