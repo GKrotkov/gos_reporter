@@ -39,7 +39,9 @@ sapply(all_2024_matches, ncol)
 # check this output
 tmp <- merge(all_2024_matches[[4]], all_2024_matches[[1]], all = TRUE)
 
-# still debugging
-result <- Reduce(function(x, y) merge(x, y, all = TRUE), all_2024_matches)
+result <- all_2024_matches %>%
+    reduce(full_join)
+
+# do we need to trim possibly-duplicate rows (i.e. if two teams were in the same match?)
 ```
 
