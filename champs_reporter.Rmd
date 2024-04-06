@@ -30,18 +30,35 @@ statbotics_data <- data.frame(t(sapply(registered_teams, read_team)))
 # fundamentally, we want to mitigate API risk by looking at historical matches
 # as well as matches at the championship.
 
+# @TODO gotta make better names for everything, but this is the code outline
+
 # explain additional parameters through "..."
 all_2024_matches <- sapply(registered_teams, team_matches, year = 2024)
 
 # why are these not all the same?
 sapply(all_2024_matches, ncol)
 
-# check this output
+# answer: check this output (last column)
 tmp <- merge(all_2024_matches[[4]], all_2024_matches[[1]], all = TRUE)
 
 result <- all_2024_matches %>%
     reduce(full_join)
 
 # do we need to trim possibly-duplicate rows (i.e. if two teams were in the same match?)
+stopifnot(!any(duplicated(result)))
+
+historical_performance <- function(event_code){
+    registered_teams <- event_teams(event_code, keys = TRUE)
+    registered_teams <- as.numeric(
+        substr(registered_teams, 4, nchar(registered_teams))
+    )
+    year <- as.numeric(substr(event_code, 1, 4))
+    matches <- sapply(registered_teams, team_matches, year = year)
+    result <- matches %>%
+        reduce(full_join)
+    # check for duplicated matches
+    stopifnot(!any(duplicated(result)))
+    return(result)
+}
 ```
 
