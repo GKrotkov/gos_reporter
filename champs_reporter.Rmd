@@ -21,10 +21,10 @@ registered_teams <- as.numeric(
     substr(registered_teams, 4, nchar(registered_teams))
 )
 
-statbotics_data <- data.frame(t(sapply(registered_teams, read_team)))
+statbotics_data <- data.frame(t(sapply(registered_teams, read_team_year, year = 2024)))
 ```
 
-```{r}
+```{r, message = FALSE, error = FALSE, warning = FALSE}
 # gabriel's guided tour of historical matches
 
 # fundamentally, we want to mitigate API risk by looking at historical matches
@@ -47,7 +47,7 @@ result <- all_2024_matches %>%
 # do we need to trim possibly-duplicate rows (i.e. if two teams were in the same match?)
 stopifnot(!any(duplicated(result)))
 
-historical_performance <- function(event_code){
+year_historical_matches <- function(event_code){
     registered_teams <- event_teams(event_code, keys = TRUE)
     registered_teams <- as.numeric(
         substr(registered_teams, 4, nchar(registered_teams))
@@ -60,5 +60,16 @@ historical_performance <- function(event_code){
     stopifnot(!any(duplicated(result)))
     return(result)
 }
+
+data <- get_multifield_df(year_historical_matches("2024gaalb"), 
+                          c("autoLine", "endGame"))
+
+data$id <- as.numeric(
+    substr(data$id, 4, nchar(data$id))
+)
+
+data <- data[data$id %in% registered_teams, ]
+
+data <- merge(data, statbotics_data, by.x = "id", by.y = "team")
 ```
 
