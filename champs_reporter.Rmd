@@ -21,8 +21,13 @@ registered_teams <- as.numeric(
     substr(registered_teams, 4, nchar(registered_teams))
 )
 
-statbotics_data <- data.frame(t(sapply(registered_teams, read_team_year, year = 2024)))
+statbotics_data <- data.frame(
+    t(sapply(registered_teams, read_team_year, year = 2024))
+)
 ```
+
+Suggestion from Reinhart: 
+use `vec_rbind` from `vctrs` to bind together the dataframes
 
 ```{r, message = FALSE, error = FALSE, warning = FALSE}
 # gabriel's guided tour of historical matches
@@ -33,7 +38,7 @@ statbotics_data <- data.frame(t(sapply(registered_teams, read_team_year, year = 
 # @TODO gotta make better names for everything, but this is the code outline
 
 # explain additional parameters through "..."
-all_2024_matches <- sapply(registered_teams, team_matches, year = 2024)
+all_2024_matches <- lapply(registered_teams, team_matches, year = 2024)
 
 # why are these not all the same?
 sapply(all_2024_matches, ncol)
