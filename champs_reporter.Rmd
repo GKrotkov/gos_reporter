@@ -6,15 +6,16 @@ output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE)
 ```
 
-```{r, message = FALSE}
+```{r, message = FALSE, include = FALSE}
+# setting include = FALSE so that the file knits without internet
 library(devtools)
 load_all("../tbaR")
 source("statbotics_readR.R")
 
-event_code <- "2024gaalb"
+event_code <- "2024new"
 
 registered_teams <- event_teams(event_code, keys = TRUE)
 registered_teams <- as.numeric(
@@ -24,12 +25,14 @@ registered_teams <- as.numeric(
 statbotics_data <- data.frame(
     t(sapply(registered_teams, read_team_year, year = 2024))
 )
+
+save(statbotics_data, registered_teams, event_code, file = "data/setup.rda")
 ```
 
 Suggestion from Reinhart: 
 use `vec_rbind` from `vctrs` to bind together the dataframes
 
-```{r, message = FALSE, error = FALSE, warning = FALSE}
+```{r, message = FALSE, error = FALSE, warning = FALSE, include = FALSE}
 # gabriel's guided tour of historical matches
 
 # fundamentally, we want to mitigate API risk by looking at historical matches
@@ -76,5 +79,74 @@ data$id <- as.numeric(
 data <- data[data$id %in% registered_teams, ]
 
 data <- merge(data, statbotics_data, by.x = "id", by.y = "team")
+```
+
+```{r}
+```
+
+```{r team view, include = FALSE}
+
+```
+
+```{r}
+load("data/setup.rda")
+matchdata <- read_csv("data/2024newton_match.csv", show_col_types = FALSE)
+matchdata$tele_total_notes <- matchdata$tele_speaker_score + 
+    matchdata$tele_amp_score + matchdata$feed_count
+
+red_alliance <- c(4779, 3504, 3339)
+blue_alliance <- c(58, 254, 9475)
+
+alliance <- ifelse(3504 %in% red_alliance, red_alliance, blue_alliance)
+
+important_cols <- c(
+    "team_id", "auto_speaker_score", "tele_speaker_score", "tele_amp_score", 
+    "tele_total_notes", "feed_count", "trap_note_score", "stage_onstage", 
+    "harmony_success"
+)
+
+p1 <- matchdata[matchdata$team_id %in% 4779, important_cols]
+p2 <- matchdata[matchdata$team_id %in% 3504, important_cols]
+p3 <- matchdata[matchdata$team_id %in% 3339, important_cols]
+
+View(p1)
+View(p2)
+View(p3)
+
+matchdata <- matchdata %>%
+    group_by(team_id) %>%
+    summarize(
+        avg_tele_total_notes = mean(tele_total_notes, na.rm = TRUE), 
+        avg_tele_spk = mean(tele_speaker_score, na.rm = TRUE), 
+        avg_tele_amp = mean(tele_amp_score, na.rm = TRUE),
+        avg_feed = mean(feed_count, na.rm = TRUE),
+        auto_avg = mean(auto_speaker_score, na.rm = TRUE), 
+        foul_avg = mean(foul_count, na.rm = TRUE), 
+        trap_avg = mean(trap_note_score, na.rm = TRUE), 
+        harmony_pct = sum(harmony_success, na.rm = TRUE) / 
+            (sum(harmony_success, na.rm = TRUE) + 
+                 sum(harmony_attempt_failed, na.rm = TRUE)), 
+        onstage_avg = (mean(harmony_success, na.rm = TRUE) + mean(stage_onstage, na.rm = TRUE))
+    )
+
+red_df <- matchdata[matchdata$team_id %in% red_alliance, ]
+red_df$color <- "red"
+blue_df <- matchdata[matchdata$team_id %in% blue_alliance, ]
+blue_df$color <- "blue"
+
+viz <- rbind(red_df, blue_df)
+
+ggplot(viz, 
+       aes(x = avg_tele_total_notes, y = auto_avg, 
+           label = team_id, color = color)) + 
+    geom_label() + 
+    labs(title = "Match at-a-glance", 
+         color = "Alliance", x = "Teleop Throughput", y = "Auto Speaker Score")
+
+ggplot(viz, aes(x = avg_feed, y = avg_tele_spk + avg_tele_amp, 
+                label = team_id, color = color)) + 
+    geom_label() + 
+    labs(title = "Scores vs Feeds", 
+         color = "Alliance", x = "Feeding Average", y = "Average # Notes Scored")
 ```
 
