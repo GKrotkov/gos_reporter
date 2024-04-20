@@ -82,36 +82,35 @@ data <- merge(data, statbotics_data, by.x = "id", by.y = "team")
 ```
 
 ```{r}
-```
-
-```{r team view, include = FALSE}
-
-```
-
-```{r}
 load("data/setup.rda")
 matchdata <- read_csv("data/2024newton_match.csv", show_col_types = FALSE)
 matchdata$tele_total_notes <- matchdata$tele_speaker_score + 
     matchdata$tele_amp_score + matchdata$feed_count
 
-red_alliance <- c(4779, 3504, 3339)
-blue_alliance <- c(58, 254, 9475)
+red_alliance <- c(3015, 3504, 5024)
+blue_alliance <- c(836, 3937, 9609)
 
 alliance <- ifelse(3504 %in% red_alliance, red_alliance, blue_alliance)
 
 important_cols <- c(
     "team_id", "auto_speaker_score", "tele_speaker_score", "tele_amp_score", 
     "tele_total_notes", "feed_count", "trap_note_score", "stage_onstage", 
-    "harmony_success"
+    "harmony_success", "notes"
 )
 
-p1 <- matchdata[matchdata$team_id %in% 4779, important_cols]
+p1 <- matchdata[matchdata$team_id %in% 3015, important_cols]
 p2 <- matchdata[matchdata$team_id %in% 3504, important_cols]
-p3 <- matchdata[matchdata$team_id %in% 3339, important_cols]
+p3 <- matchdata[matchdata$team_id %in% 5024, important_cols]
+o1 <- matchdata[matchdata$team_id %in% 836, important_cols]
+o2 <- matchdata[matchdata$team_id %in% 3937, important_cols]
+o3 <- matchdata[matchdata$team_id %in% 9609, important_cols]
 
 View(p1)
 View(p2)
 View(p3)
+View(o1)
+View(o2)
+View(o3)
 
 matchdata <- matchdata %>%
     group_by(team_id) %>%
@@ -148,5 +147,23 @@ ggplot(viz, aes(x = avg_feed, y = avg_tele_spk + avg_tele_amp,
     geom_label() + 
     labs(title = "Scores vs Feeds", 
          color = "Alliance", x = "Feeding Average", y = "Average # Notes Scored")
+```
+
+```{r}
+red_idx <- which(unlist(statbotics_data$team) %in% red_alliance)
+blue_idx <- which(unlist(statbotics_data$team) %in% blue_alliance)
+
+viz <- data.frame(
+    team = unlist(statbotics_data$team)[c(red_idx, blue_idx)],
+    tele = unlist(statbotics_data$teleop_epa_end)[c(red_idx, blue_idx)],
+    auto = unlist(statbotics_data$auto_epa_end)[c(red_idx, blue_idx)], 
+    endgame = unlist(statbotics_data$endgame_epa_end)[c(red_idx, blue_idx)], 
+    color = c(rep("red", 3), rep("blue", 3))
+)
+
+ggplot(viz, aes(x = tele, y = auto + endgame, label = team, color = color)) + 
+    geom_label() + 
+    labs(title = "Statbotics Summary", 
+         x = "Teleop EPA", y = "Auto + Endgame EPA")
 ```
 
